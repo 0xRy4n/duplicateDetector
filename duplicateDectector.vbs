@@ -1,5 +1,3 @@
-
-
 'Author: Ryan J Gordon, March 2016
 
 'This programs purpose is to identify duplicate account entries in a client database (though it could easily be tweaked for any database)
@@ -26,7 +24,7 @@
 Sub Main():
     Application.ActiveSheet.UsedRange
     Dim lRowCount As Integer
-    lRowCount = Worksheets(ActiveSheet.Name).UsedRange.Rows.Count
+    lRowCount = Worksheets(ActiveSheet.Name).UsedRange.Rows.count
 
 
     Application.ScreenUpdating = False
@@ -119,23 +117,40 @@ Function commonSubstrings(string1, string2)
     commonSubstrings = commonSubs
 End Function
 
+Function IsVarArrayEmpty(anArray As Variant)
+    Dim i As Integer
+    
+    On Error Resume Next
+        i = UBound(anArray, 1)
+    If Err.Number = 0 Then
+        IsVarArrayEmpty = False
+    Else
+        IsVarArrayEmpty = True
+    End If
+End Function
+
 Function similarity(string1, string2)
   Dim substrings() As String
   Dim totalStringLength As Integer
   Dim totalSubstringLength As Integer
+  Dim element As Variant
 
   substrings = commonSubstrings(string1, string2)
-
-  totalStringLength = Len(string1) + Len(string2)
-
-  totalSubstringLength = 0
-  For i = LBound(substrings, 1) To UBound(substrings, 1)
-    totalSubstringLength = totalSubstringLength + Len(substrings(i))
-  Next
-
-  totalSubstringLength = totalSubstringLength * 2
-
-  similarity = totalSubstringLength / totalStringLength
+  If (IsVarArrayEmpty(substrings) = False) Then
+      totalStringLength = Len(string1) + Len(string2)
+    
+      totalSubstringLength = 0
+      
+      For Each element In substrings
+        totalSubstringLength = totalSubstringLength + Len(element)
+      Next element
+    
+      totalSubstringLength = totalSubstringLength * 2
+    
+      similarity = totalSubstringLength / totalStringLength
+  Else
+    similarity = 0
+  End If
 
 End Function
 
@@ -200,3 +215,4 @@ Sub duplicates(ByRef sheet As Variant, ByVal lRowCount As Integer):
         End If
     Next
 End Sub
+
