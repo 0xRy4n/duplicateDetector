@@ -1,3 +1,5 @@
+
+
 'Author: Ryan J Gordon, March 2016
 
 'This programs purpose is to identify duplicate account entries in a client database (though it could easily be tweaked for any database)
@@ -62,6 +64,80 @@ Function sheetArray(ByRef lRowCount):
     Next
     sheetArray = sheetArr
 End Function
+Function LongestCommonSubstring(S1, S2)
+  MaxSubstrStart = 1
+  MaxLenFound = 0
+  For i1 = 1 To Len(S1)
+    For i2 = 1 To Len(S2)
+      X = 0
+      While i1 + X <= Len(S1) And _
+            i2 + X <= Len(S2) And _
+            Mid(S1, i1 + X, 1) = Mid(S2, i2 + X, 1)
+        X = X + 1
+      Wend
+      If X > MaxLenFound Then
+        MaxLenFound = X
+        MaxSubstrStart = i1
+      End If
+    Next
+  Next
+
+  If (MaxLenFound > 0) Then
+    LongestCommonSubstring = Mid(S1, MaxSubstrStart, MaxLenFound)
+  Else
+    LongestCommonSubstring = "NONE"
+  End If
+
+End Function
+
+Function commonSubstrings(string1, string2)
+    Dim S1 As String
+    S1 = UCase(string1)
+    Dim S2 As String
+    S2 = UCase(string2)
+    Dim finding As Boolean
+    finding = True
+    Dim commonSubs() As String
+
+    Dim lcs As String
+
+    Dim count As Integer
+    count = 0
+    Do While (finding = True)
+        lcs = LongestCommonSubstring(S1, S2)
+        If Not (StrComp(lcs, "NONE") = 0) Then
+          ReDim Preserve commonSubs(count)
+          commonSubs(count) = lcs
+          count = count + 1
+          S1 = Replace(S1, lcs, "")
+          S2 = Replace(S2, lcs, "")
+        Else
+          finding = False
+        End If
+    Loop
+    
+    commonSubstrings = commonSubs
+End Function
+
+Function similarity(string1, string2)
+  Dim substrings() As String
+  Dim totalStringLength As Integer
+  Dim totalSubstringLength As Integer
+
+  substrings = commonSubstrings(string1, string2)
+
+  totalStringLength = Len(string1) + Len(string2)
+
+  totalSubstringLength = 0
+  For i = LBound(substrings, 1) To UBound(substrings, 1)
+    totalSubstringLength = totalSubstringLength + Len(substrings(i))
+  Next
+
+  totalSubstringLength = totalSubstringLength * 2
+
+  similarity = totalSubstringLength / totalStringLength
+
+End Function
 
 'Writes data back into sheet
 Sub writeToSheet(ByRef sheet, ByVal lRowCount):
@@ -101,15 +177,15 @@ Sub duplicates(ByRef sheet As Variant, ByVal lRowCount As Integer):
                 email2 = UCase(sheet(n)(4))
                 
                 'Weak form of fuzzy logic
-                If (StrComp(firstName, firstName, vbTextCompare) = 0) Then
+                If (similarity(firstName, firstName2) > 0.85) Then
                     duplicateCounter = duplicateCounter + 2
                 End If
                 
-                If (StrComp(lastName, lastName2, vbTextCompare) = 0) Then
+                If (similarity(lastName, lastName2) > 0.85) Then
                     duplicateCounter = duplicateCounter + 2
                 End If
                 
-                If (StrComp(address, address2, vbTextCompare) = 0) Or (StrComp(email, email2, vbTextCompare) = 0) Then
+                If (similarity(address, address2) > 0.85) Or (similarity(email, email2) > 0.85) Then
                     duplicateCounter = duplicateCounter + 1
                 End If
                 
@@ -124,6 +200,3 @@ Sub duplicates(ByRef sheet As Variant, ByVal lRowCount As Integer):
         End If
     Next
 End Sub
-        
-
-
