@@ -16,7 +16,7 @@
 '************* Technical Details ***************'
 'This reads the entire sheet into a massive array, made up of subarrays, where each subarray is the column data for the given row.
 'For each row not marked as a duplicate, it loops through every row after it searching for duplicates of it (and marking them when found).
-'I've calculated this to lead to roughly a complexity of O[1/2(n-1)^2 + (n-1)].
+'I've calculated this to lead to roughly a worst-case complexity of roughly [1/2(n-1)^2 + (n-1)].
 'Once completed it writes the array back into the sheet.
 'All application features that lead to possible slow downs are disabled before running and enabled afterwords.
 
