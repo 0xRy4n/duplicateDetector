@@ -16,9 +16,11 @@
 '************* Technical Details ***************'
 'This reads the entire sheet into a massive array, made up of subarrays, where each subarray is the column data for the given row.
 'For each row not marked as a duplicate, it loops through every row after it searching for duplicates of it (and marking them when found).
-'I've calculated this to lead to roughly a worst-case complexity of roughly [1/2(n-1)^2 + (n-1)].
+'I've calculated this to lead to roughly a complexity of O[1/2(n-1)^2 + (n-1)].
 'Once completed it writes the array back into the sheet.
 'All application features that lead to possible slow downs are disabled before running and enabled afterwords.
+
+Const similarityThreshold As Double = 0.75
 
 
 Sub Main():
@@ -62,6 +64,9 @@ Function sheetArray(ByRef lRowCount):
     Next
     sheetArray = sheetArr
 End Function
+
+
+' Slightly modified version of function taken from wikibooks.org
 Function LongestCommonSubstring(S1, S2)
   MaxSubstrStart = 1
   MaxLenFound = 0
@@ -87,6 +92,7 @@ Function LongestCommonSubstring(S1, S2)
   End If
 
 End Function
+
 
 Function commonSubstrings(string1, string2)
     Dim S1 As String
@@ -129,10 +135,11 @@ Function IsVarArrayEmpty(anArray As Variant)
     End If
 End Function
 
-Function similarity(string1, string2)
+
+Function similarity(string1, string2) As Double
   Dim substrings() As String
   Dim totalStringLength As Integer
-  Dim totalSubstringLength As Integer
+  Dim totalSubstringLength As Double
   Dim element As Variant
 
   substrings = commonSubstrings(string1, string2)
@@ -140,19 +147,23 @@ Function similarity(string1, string2)
       totalStringLength = Len(string1) + Len(string2)
     
       totalSubstringLength = 0
-      
       For Each element In substrings
-        totalSubstringLength = totalSubstringLength + Len(element)
+        If (Len(element) = 1) Then
+            totalSubstringLength = totalSubstringLength + 0.5
+        Else
+            totalSubstringLength = totalSubstringLength + Len(element)
+        End If
       Next element
     
       totalSubstringLength = totalSubstringLength * 2
-    
+      
       similarity = totalSubstringLength / totalStringLength
   Else
     similarity = 0
   End If
 
 End Function
+
 
 'Writes data back into sheet
 Sub writeToSheet(ByRef sheet, ByVal lRowCount):
@@ -166,18 +177,19 @@ Sub writeToSheet(ByRef sheet, ByVal lRowCount):
     Next
 End Sub
 
+
 Sub duplicates(ByRef sheet As Variant, ByVal lRowCount As Integer):
     For i = 1 To lRowCount
-    
-        If Duplicate = vbNullString Then
-    
-            Dim lastName, firstName, email, address As String
-            
-            lastName = UCase(sheet(i)(1))
-            firstName = UCase(sheet(i)(2))
-            address = UCase(sheet(i)(3))
-            email = UCase(sheet(i)(4))
-            Duplicate = sheet(i)(5)
+
+        Dim lastName, firstName, email, address As String
+        
+        lastName = sheet(i)(1)
+        firstName = sheet(i)(2)
+        address = sheet(i)(3)
+        email = sheet(i)(4)
+        Duplicate = sheet(i)(5)
+        
+        If Not Duplicate = "YES" Then
         
             For n = (i + 1) To lRowCount
                 
@@ -186,21 +198,20 @@ Sub duplicates(ByRef sheet As Variant, ByVal lRowCount As Integer):
                 
                 Dim lastName2, firstName2, email2, address2 As String
                 
-                lastName2 = UCase(sheet(n)(1))
-                firstName2 = UCase(sheet(n)(2))
-                address2 = UCase(sheet(n)(3))
-                email2 = UCase(sheet(n)(4))
+                lastName2 = sheet(n)(1)
+                firstName2 = sheet(n)(2)
+                address2 = sheet(n)(3)
+                email2 = sheet(n)(4)
                 
-                'Weak form of fuzzy logic
-                If (similarity(firstName, firstName2) > 0.85) Then
-                    duplicateCounter = duplicateCounter + 2
+                ' Fuzzy string comparisons
+                If (similarity(firstName + lastName, firstName2 + lastName2) > similarityThreshold) Then
+                    duplicateCounter = duplicateCounter + 4
                 End If
                 
-                If (similarity(lastName, lastName2) > 0.85) Then
-                    duplicateCounter = duplicateCounter + 2
-                End If
+                MsgBox (lastName + " " + lastName2)
+                MsgBox (similarity(firstName + lastName, firstName2 + lastName2))
                 
-                If (similarity(address, address2) > 0.85) Or (similarity(email, email2) > 0.85) Then
+                If (similarity(address, address2) > similarityThreshold) Or (similarity(email, email2) > similarityThreshold) Then
                     duplicateCounter = duplicateCounter + 1
                 End If
                 
@@ -215,4 +226,5 @@ Sub duplicates(ByRef sheet As Variant, ByVal lRowCount As Integer):
         End If
     Next
 End Sub
+
 
