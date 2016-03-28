@@ -208,9 +208,6 @@ Sub duplicates(ByRef sheet As Variant, ByVal lRowCount As Integer):
                     duplicateCounter = duplicateCounter + 4
                 End If
                 
-                MsgBox (lastName + " " + lastName2)
-                MsgBox (similarity(firstName + lastName, firstName2 + lastName2))
-                
                 If (similarity(address, address2) > similarityThreshold) Or (similarity(email, email2) > similarityThreshold) Then
                     duplicateCounter = duplicateCounter + 1
                 End If
